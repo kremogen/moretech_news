@@ -1,16 +1,18 @@
 import requests
+from bs4 import BeautifulSoup
+
 
 API_BASE = 'https://www.forbes.ru/'
 API_LINK = 'https://api.forbes.ru/api/pub/lists/biznes'
 
 
-def get_last_news():
+def get_last_news(offset):
     data = {
         'list[limit]': 11,
-        'list[offset]': 88
+        'list[offset]': offset
     }
-
-    response = requests.get(API_LINK, json=data)
+    print(offset)
+    response = requests.get(API_LINK, params=data)
     result = []
 
     try:
@@ -28,13 +30,21 @@ def get_last_news():
 
 def get_news_html(url: str):
     resource = requests.get(url)
-    print(resource.text)
+    text_normalizer(resource.text)
+    #print(resource.text)
+
+def text_normalizer(text):
+    soup = BeautifulSoup(text, 'lxml')
+    quotes = soup.find_all(itemprop='articleBody')
+    print(quotes)
 
 
 if __name__ == '__main__':
-    news = get_last_news()
-
-    link = news[1]
-    print(link)
-    get_news_html(link)  # между тегами с классом _3Ywvx находится контент новости
+    offset = 0
+    for i in range(10):
+        last_news = get_last_news(offset)
+        offset += 11
+        for j in range(len(last_news) - 1):
+            get_news_html(last_news[j])
+    # между тегами с классом _3Ywvx находится контент новости
     # data-hid="og:title" property="og:title" content= - заголовок новости
