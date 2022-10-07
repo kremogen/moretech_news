@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 
-
 API_BASE = 'https://www.forbes.ru/'
 API_LINK = 'https://api.forbes.ru/api/pub/lists/biznes'
 
@@ -31,7 +30,8 @@ def get_last_news(offset):
 def get_news_html(url: str):
     resource = requests.get(url)
     text_normalizer(resource.text)
-    #print(resource.text)
+    print(resource.text)
+
 
 def text_normalizer(text):
     soup = BeautifulSoup(text, 'lxml')

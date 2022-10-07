@@ -1,5 +1,6 @@
 import re
 
+
 def preprocess_text(text):
     text = text.lower().replace("ё", "е")
     text = re.sub('((www\.[^\s]+)|(https?://[^\s]+))', 'URL', text)
