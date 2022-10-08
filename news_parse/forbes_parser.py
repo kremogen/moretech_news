@@ -23,7 +23,7 @@ def get_last_news_data(offset):
 
 def get_news_html(url: str):
     resource = requests.get(url)
-    #print(resource.text)
+    # print(resource.text)
     print(text_normalizer(resource.text))
     print(title_finder(resource.text))
 
