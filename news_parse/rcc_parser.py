@@ -5,7 +5,7 @@ import re
 URL = 'https://www.michael-smirnov.ru/Get_RSS.php?pRSSurl=https://www.banki.ru/xml/news.rss'
 URL_NEW = 'https://www.michael-smirnov.ru/Get_RSS.php?pRSSurl=https%3A%2F%2Fvc.ru%2Ffeed'
 
-response = requests.get(URL_NEW)
+response = requests.get(URL)
 
 soup = BeautifulSoup(response.text, 'lxml')
 
