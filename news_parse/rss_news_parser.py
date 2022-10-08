@@ -110,9 +110,7 @@ class KlerkParser(RssParser, ABC):
                                  entries[i]['link'], entries[i]['published'])
 
 
-if __name__ == '__main__':
-    filename = 'rss_news.csv'
-
+def create_actual_news_csv(filename: str) -> None:
     ps = [
         VedomostiParser(filename),
         BankiRuParser(filename),

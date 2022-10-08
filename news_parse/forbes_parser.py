@@ -44,9 +44,6 @@ def get_news_link(url_alias: str):
     return API_BASE + url_alias
 
 
-# между тегами с классом _3Ywvx находится контент новости
-# data-hid="og:title" property="og:title" content= - заголовок новости
-
 if __name__ == '__main__':
     offset = 0
     for i in range(2):
