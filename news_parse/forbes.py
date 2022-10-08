@@ -23,12 +23,20 @@ def get_last_news_data(offset):
 
 def get_news_html(url: str):
     resource = requests.get(url)
+    #print(resource.text)
     print(text_normalizer(resource.text))
+    print(title_finder(resource.text))
 
 
 def text_normalizer(text) -> list:
     soup = BeautifulSoup(text, 'lxml')
     quotes = soup.find_all(itemprop='articleBody')
+    return quotes
+
+
+def title_finder(text):
+    soup = BeautifulSoup(text, 'lxml')
+    quotes = soup.find('title')
     return quotes
 
 
