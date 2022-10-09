@@ -1,19 +1,39 @@
 from fastapi import FastAPI
 
+import main
+
 app = FastAPI()
 
 
-@app.get('/get_buh_digest')
-async def root():
+@app.get('/api/v1/get_trending')
+async def get_trending(role: str = 'boss', count: int = 3):
+    news = main.get_news()
+    if role in news:
+        result = list()
+        for i in range(count):
+            data = {
+                'article': news['Article'][i],
+                'link': news['Link'][i],
+                'date': news['Date'][i],
+            }
+            result.append(data)
+        return result
+    else:
+        return 'role not found'
 
-    return {'data': 322}
 
-
-@app.get('/get_dir_digest')
-async def root():
-    return {'data': 322}
-
-
-@app.get('/get_trending')
-async def root():
-    return {'data': 322}
+@app.get('/api/v1/get_digest')
+async def get_digest(role: str = 'boss', count: int = 3):
+    news = main.get_news()
+    if role in news:
+        result = list()
+        for i in range(count):
+            data = {
+                'digest': news['Digest'][i],
+                'link': news['Link'][i],
+                'date': news['Date'][i],
+            }
+            result.append(data)
+        return result
+    else:
+        return 'role not found'

@@ -23,17 +23,13 @@ def start(message):
     conn.close()
 
     if message.text == '/start':
-        try:
-            if id is None:
-                send_startup(message.from_user.id)
+        if id is None:
+            send_startup(message.from_user.id)
+        else:
+            if get_user_role(message.from_user.id) is None:
+                send_role_choose(message.from_user.id)
             else:
-                if get_user_role(message.from_user.id) is None:
-                    send_role_choose(message.from_user.id)
-                else:
-                    send_main_menu(message.from_user.id)
-
-        except Exception as e:
-            print(e)
+                send_main_menu(message.from_user.id)
     else:
         if id is None:
             send_startup(message.from_user.id)
@@ -67,11 +63,11 @@ def callback_worker(call):
         send_role_choose(call.from_user.id)
     elif call.data == 'back':
         send_main_menu(call.from_user.id)
-    elif call.data == 'buh':
-        update_user_role(call.from_user.id, 'buh')
+    elif call.data == 'acc':
+        update_user_role(call.from_user.id, 'acc')
         send_main_menu(call.from_user.id)
-    elif call.data == 'dir':
-        update_user_role(call.from_user.id, 'dir')
+    elif call.data == 'boss':
+        update_user_role(call.from_user.id, 'boss')
         send_main_menu(call.from_user.id)
     elif call.data == 'another':
         bot.send_message(call.message.chat.id, '📎 Напишите краткое описание вашей деятельности (1-2 слова):')
@@ -82,17 +78,46 @@ def callback_worker(call):
                                                f'может охарактеризовать вашу деятельность:')
         user_actions[call.from_user.id] = UserAction.WAITING_FOR_CUSTOM_WORDS
     elif call.data == 'trending':
-        keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton(text='Назад', callback_data='back'))
-        bot.send_message(call.message.chat.id, 'Trending news', reply_markup=keyboard)
+        role = get_user_role(call.from_user.id)
+        if role is None:
+            send_startup(call.from_user.id)
+            return
+
+        import main
+
+        news = main.get_news()[role[0]]
+        le = len(news)
+
+        for i in range(le):
+            if i == le - 1:
+                keyboard = types.InlineKeyboardMarkup()
+                keyboard.add(types.InlineKeyboardButton(text='Назад', callback_data='back'))
+                bot.send_message(call.message.chat.id, news['Link'][i], reply_markup=keyboard)
+                return
+            bot.send_message(call.message.chat.id, news['Link'][i])
+
     elif call.data == 'insights':
         keyboard = types.InlineKeyboardMarkup()
         keyboard.add(types.InlineKeyboardButton(text='Назад', callback_data='back'))
         bot.send_message(call.message.chat.id, 'Insights', reply_markup=keyboard)
     elif call.data == 'digests':
-        keyboard = types.InlineKeyboardMarkup()
-        keyboard.add(types.InlineKeyboardButton(text='Назад', callback_data='back'))
-        bot.send_message(call.message.chat.id, 'Digests', reply_markup=keyboard)
+        role = get_user_role(call.from_user.id)
+        if role is None:
+            send_startup(call.from_user.id)
+            return
+
+        import main
+
+        news = main.get_news()[role[0]]
+        le = len(news)
+
+        for i in range(le):
+            if i == le - 1:
+                keyboard = types.InlineKeyboardMarkup()
+                keyboard.add(types.InlineKeyboardButton(text='Назад', callback_data='back'))
+                bot.send_message(call.message.chat.id, '📆 ' + news['Digest'][i][2:-2], reply_markup=keyboard)
+                return
+            bot.send_message(call.message.chat.id, '📆 ' + news['Digest'][i][2:-2])
 
 
 def send_startup(id: int):
@@ -135,8 +160,8 @@ def get_custom_user_role(id: int):
 
 def send_role_choose(id: int):
     keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(types.InlineKeyboardButton(text='Управление бизнесом', callback_data='dir'))
-    keyboard.add(types.InlineKeyboardButton(text='Бухгалтерия', callback_data='buh'))
+    keyboard.add(types.InlineKeyboardButton(text='Управление бизнесом', callback_data='boss'))
+    keyboard.add(types.InlineKeyboardButton(text='Бухгалтерия', callback_data='acc'))
     keyboard.add(types.InlineKeyboardButton(text='Другое', callback_data='another'))
     bot.send_message(id, '🕺 Выберите пункт, который наилучшим образом описывает вашу деятельность:',
                      reply_markup=keyboard)
@@ -150,9 +175,9 @@ def send_main_menu(id: int):
     keyboard.add(types.InlineKeyboardButton(text='Сменить интересы', callback_data='startup'))
 
     role_name = get_user_role(id)[0]
-    if role_name == 'dir':
+    if role_name == 'boss':
         role_name = 'Управление бизнесом'
-    elif role_name == 'buh':
+    elif role_name == 'acc':
         role_name = 'Бухгалтерия'
     elif role_name == 'another':
         role_name = get_custom_user_role(id)[0]
@@ -208,9 +233,6 @@ def init_db():
         print('База данных не найдена, создаю и начинаю работу!')
 
 
-if __name__ == '__main__':
+def start_bot():
     init_db()
-    try:
-        bot.polling(none_stop=True, interval=0)
-    except Exception as e:
-        print(e)
+    bot.polling(none_stop=True, interval=0)

@@ -1,5 +1,4 @@
 from gensim.models import Word2Vec
-import time
 import re
 from collections import Counter
 import itertools
@@ -17,7 +16,7 @@ from sumy.nlp.tokenizers import Tokenizer
 from sumy.summarizers.lex_rank import LexRankSummarizer
 
 roles = {
-    "Boss": [
+    "boss": [
         "расширение",
         "инвестиция",
         "обслуживание",
@@ -39,7 +38,7 @@ roles = {
         "тайная",
         "лицензия"
     ],
-    "Accountant": [
+    "acc": [
         "налог",
         "льгота",
         "сдача",
@@ -155,39 +154,34 @@ class SemanticProcessing:
         return result.head(n).index.to_list()
 
     @staticmethod
-    def get_median_similarity_for_body(model, terms, role_keywords):
+    def get_median_similarity_for_body(terms, keys):
         """
         Медиана частоты появления слов в теле новости
         :param model:
         :param terms:
-        :param role_keywords:
+        :param keys:
         :return:
         """
         result = []
+        nlp_terms = list(map(NLP, terms))
+        nlp_role_keys = list(map(NLP, keys))
 
-        for article_word, keyword in itertools.product(terms, role_keywords):
-            try:
-                result.append(
-                    model.similarity(
-                        article_word + "_" + NLP(article_word)[0].pos_,
-                        keyword + "_" + NLP(keyword)[0].pos_))
-            except KeyError as e:
-                result.append(0.0)
-                # print(e)
+        for article, key in itertools.product(nlp_terms, nlp_role_keys):
+            result.append(article.similarity(key))
 
         return median(result)
 
-    def get_most_similar_for_role(self, role):
+    def get_most_similar_by_words(self, file: str, role: str, words: list):
         self.optimize_body()
         self.drop_similar()
 
         self.dataframe[role] = self.dataframe["Body"].map(
             lambda x: self.get_median_similarity_for_body(
-                model=self.model,
                 terms=x,
-                role_keywords=roles[role]))
+                keys=words))
         our_df = self.dataframe.sort_values(role, ascending=False)
-        our_df.to_csv("processed_data.csv")
+        our_df.to_csv(file)
+        print(our_df[:3])
 
     @staticmethod
     def find_digest(body):
@@ -262,19 +256,15 @@ class SemanticProcessing:
 
 
 if __name__ == "__main__":
-    time_start = time.time()
-    # df = pd.read_csv("dataset.tsv", sep="\t")
-    data = pd.read_csv("rss_news.csv", names=["Article", "Body", "Link", "Date"])[:10]
-    # data = pd.read_csv("testW.csv")
-    print(data)
-    # data = preprocess_df(data[:5])
-    # eval_data_4_role("Boss", data)
+    data = pd.read_csv("rss_news.csv", names=["Article", "Body", "Link", "Date"])
 
     semantic_processing = SemanticProcessing(data)
-    semantic_processing.find_trends()
-    print(semantic_processing.dataframe)
+    tr = semantic_processing.find_trends()
+    print(tr)
 
-    # # semantic_processing.get_most_similar_for_role("Boss")
+    semantic_processing.get_most_similar_by_words('bin/processed_data.csv', 'boss', roles['boss'])
+
+    # semantic_processing.get_most_similar_for_role("Boss")
     # semantic_processing.find_trends()
     # print(NLP("россия").similarity(NLP("нефть")))
-    print(time.time() - time_start)
+    # print(time.time() - time_start)
