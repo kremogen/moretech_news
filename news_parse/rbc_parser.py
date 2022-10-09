@@ -1,8 +1,9 @@
 import datetime
 import json
+import re
+
 import requests
 from bs4 import BeautifulSoup
-from text_cleaner import preprocess_text
 import csv
 
 # last_stamp = str((datetime.datetime.now().timestamp())).split('.')[0]
@@ -52,6 +53,15 @@ def get_articles():
 def main():
     for d in range(100):
         get_articles()
+
+
+def preprocess_text(text):
+    text = text.lower().replace("ё", "е")
+    text = re.sub('((www\.[^\s]+)|(https?://[^\s]+))', 'URL', text)
+    text = re.sub('@[^\s]+', 'USER', text)
+    text = re.sub('[^a-zA-Zа-яА-Я1-9]+', ' ', text)
+    text = re.sub(' +', ' ', text)
+    return text.strip()
 
 
 if __name__ == "__main__":
