@@ -1,5 +1,5 @@
 from abc import abstractmethod, ABC
-
+import os
 import feedparser
 import requests
 import pandas as pd
@@ -70,6 +70,19 @@ class VedomostiParser(RssParser, ABC):
                                      entries[i]['link'], entries[i]['published'])
 
 
+class KommersantParser(RssParser, ABC):
+    def __init__(self, csv_file: str) -> None:
+        super().__init__(csv_file, 'https://www.kommersant.ru/RSS/section-business.xml')
+
+    def parse_data(self) -> None:
+        feed = super().get_xml_as_feedparser()
+        if feed is not None:
+            entries = feed['entries']
+            for i in range(len(entries)):
+                self.concat_data(entries[i]['title'], self.clear_html_tags(entries[i]['summary']),
+                                 entries[i]['link'], entries[i]['published'])
+
+
 class BankiRuParser(RssParser, ABC):
     def __init__(self, csv_file: str) -> None:
         super().__init__(csv_file, 'https://www.banki.ru/xml/news.rss')
@@ -110,12 +123,34 @@ class KlerkParser(RssParser, ABC):
                                  entries[i]['link'], entries[i]['published'])
 
 
+class AifParser(RssParser, ABC):
+    def __init__(self, csv_file: str) -> None:
+        super().__init__(csv_file, 'https://aif.ru/rss/money.php')
+
+    def parse_data(self) -> None:
+        feed = super().get_xml_as_feedparser()
+        if feed is not None:
+            entries = feed['entries']
+            for i in range(len(entries)):
+                if 'yandex_full-text' in entries[i]:
+                    self.concat_data(entries[i]['title'],
+                                     self.clear_html_tags(entries[i]['yandex_full-text']),
+                                     entries[i]['link'], entries[i]['published'])
+
+
 def create_actual_news_csv(filename: str) -> None:
+    try:
+        os.remove(filename)
+    except:
+        pass
+
     ps = [
         VedomostiParser(filename),
+        KommersantParser(filename),
         BankiRuParser(filename),
         BuhParser(filename),
-        KlerkParser(filename)
+        KlerkParser(filename),
+        AifParser(filename)
     ]
 
     count = 0
