@@ -23,7 +23,7 @@ def get_last_news_data(offset):
 
 def get_news_html(url: str):
     resource = requests.get(url)
-    #print(resource.text)
+    # print(resource.text)
     print(text_normalizer(resource.text))
     print(title_finder(resource.text))
 
@@ -43,9 +43,6 @@ def title_finder(text):
 def get_news_link(url_alias: str):
     return API_BASE + url_alias
 
-
-# между тегами с классом _3Ywvx находится контент новости
-# data-hid="og:title" property="og:title" content= - заголовок новости
 
 if __name__ == '__main__':
     offset = 0
